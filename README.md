@@ -1,4 +1,4 @@
-# ubuntu-remaster-auoinstall
+# ubuntu-remaster-autoinstall
 This project is to remaster and autoinstall via network ubuntu server 22.04 (and maybe above)
 
 ## Usage </br>
