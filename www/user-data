@@ -1,0 +1,282 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US
+  keyboard:
+    layout: de
+  refresh-installer:
+    update: false
+  ssh:
+    install-server: true
+    authorized-keys: 
+      - "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIFwj0ttLzagrH+Os6Tz3NV0SSDaXKluoQR25onGjzZohAAAABHNzaDo= Peedy@Wonderland"
+    allow-pw: false
+  source:
+    search_drivers: false
+    id: ubuntu-server-minimized
+  identity:
+    hostname: "node-0"
+    password: "$y$j9T$BhEtzyoHsrWgcuwwaPloc1$wNw57RP60e1d2khi2Dg3NuFAulKs5VMUJBBLz6Gqtp6"
+    username: admin
+    realname: management
+  network:
+    version: 2
+    network:
+      bonds:
+        bond0:
+          dhcp4: true
+          interfaces: [eports]
+          parameters:
+            lacp-rate: fast
+            mode: 802.3ad
+            transmit-hash-policy: layer2
+            mii-monitor-interval: 100
+      ethernets:
+        eports:
+          optional: true
+          dhcp4: no
+          match:
+            name: enp*
+  storage:
+    swap:
+      size: 0
+    config:
+      - id: system-disk
+        type: disk
+        preserve: false
+        wipe: superblock-recursive
+        ptable: gpt
+        grub_device: true
+        match:
+          ssd: yes
+          size: smallest
+          
+      - device: system-disk
+        type: partition
+        wipe: superblock
+        flag: boot
+        id: sys-part-1
+        number: 1
+        size: 1127219200
+        grub_device: true
+      - fstype: fat32
+        volume: sys-part-1
+        preserve: false
+        type: format
+        id: sys-format-1
+      - path: /boot/efi
+        device: sys-format-1
+        type: mount
+        id: mount-1
+
+      - device: system-disk
+        size: 2147483648
+        wipe: superblock
+        flag: ''
+        number: 2
+        preserve: false
+        grub_device: false
+        type: partition
+        id: sys-part-2
+      - fstype: ext4
+        volume: sys-part-2
+        preserve: false
+        type: format
+        id: sys-format-2
+      - path: /boot
+        device: sys-format-2
+        type: mount
+        id: mount-2
+
+      - device: system-disk
+        size: -1
+        wipe: superblock
+        flag: ''
+        number: 3
+        preserve: false
+        grub_device: false
+        type: partition
+        id: sys-part-3
+      - name: vg-system
+        devices:
+        - sys-part-3
+        preserve: false
+        type: lvm_volgroup
+        id: lvm_volgroup-0
+
+      - name: lv-varlog
+        volgroup: lvm_volgroup-0
+        size: 10737418240B
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-1
+      - fstype: ext4
+        volume: lvm_partition-1
+        preserve: false
+        type: format
+        id: lvm-format-1
+      - path: /var/log
+        device: lvm-format-1
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-1
+
+      - name: lv-vartmp
+        volgroup: lvm_volgroup-0
+        size: 10737418240B
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-2
+      - fstype: ext4
+        volume: lvm_partition-2
+        preserve: false
+        type: format
+        id: lvm-format-2
+      - path: /var/tmp
+        device: lvm-format-2
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-2
+
+      - name: lv-varlogaudit
+        volgroup: lvm_volgroup-0
+        size: 10737418240B
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-3
+      - fstype: ext4
+        volume: lvm_partition-3
+        preserve: false
+        type: format
+        id: lvm-format-3
+      - path: /var/log/audit
+        device: lvm-format-3
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-3
+
+      - name: lv-home
+        volgroup: lvm_volgroup-0
+        size: 10737418240B
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-3
+      - fstype: ext4
+        volume: lvm_partition-3
+        preserve: false
+        type: format
+        id: lvm-format-3
+      - path: /home
+        device: lvm-format-3
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-3
+
+      - name: lv-root
+        volgroup: lvm_volgroup-0
+        size: -1
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-4
+      - fstype: ext4
+        volume: lvm_partition-4
+        preserve: false
+        type: format
+        id: lvm-format-4
+      - path: /
+        device: lvm-format-4
+        type: mount
+        id: lvm-mount-4
+
+      - id: data-disk-1
+        type: disk
+        preserve: false
+        wipe: superblock-recursive
+        ptable: gpt
+        grub_device: false
+        match:
+          ssd: yes
+          serial: CT*
+          
+      - device: data-disk-1
+        size: -1
+        wipe: superblock
+        flag: ''
+        number: 1
+        preserve: false
+        grub_device: false
+        type: partition
+        id: data-part-1
+      - fstype: ext4
+        volume: data-part-1
+        preserve: false
+        type: format
+        id: data-format-1
+      - path: /data
+        device: data-format-1
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: data-mount-1
+
+  late-commands:
+    - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove apport bcache-tools byobu friendly-recovery fwupd-signed landscape-common lxd-agent-loader ntfs-3g open-vm-tools plymouth plymouth-theme-ubuntu-text popularity-contest screen sosreport tmux
+    - curtin in-target --target=/target -- snap remove --purge lxd
+    - curtin in-target --target=/target -- apt-get -y --quiet=2 remove --autoremove snapd
+    - |
+      cat <<EOF | sudo tee /target/etc/apt/preferences.d/nosnap.pref
+      # To prevent repository packages from triggering the installation of snap,
+      # this file forbids snapd from being installed by APT.
+
+      Package: snapd
+      Pin: release a=*
+      Pin-Priority: -10
+      EOF
+    - rm -rf /target/root/snap
+    - rm -rf /target/snap
+    - rm -rf /target/var/lib/snapd
+    - rm -rf /target/var/snap
+    - rm -rf /target/var/cache/snapd
+    - rm -rf /target/usr/lib/snapd
+    - curtin in-target --target=/target -- apt-get -qq update
+    #- curtin in-target --target=/target -- apt-mark manual netplan.io software-properties-common fdisk gdisk isc-dhcp-client tzdata eatmydata libeatmydata1 python-babel-localedata python3-attr python3-babel python3-certifi python3-configobj python3-idna python3-jinja2 python3-json-pointer python3-jsonpatch python3-jsonschema python3-markupsafe python3-openssl python3-pyrsistent python3-requests python3-serial python3-tz python3-urllib3
+    #- curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove cloud-init cloud-guest-utils cloud-initramfs-copymods cloud-initramfs-dyn-netconf
+    - curtin in-target --target=/target -- apt-get -y dist-upgrade
+    - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 autoremove
+    - sed -i 's/ENABLED=1/ENABLED=0/' /target/etc/default/motd-news
+    - ln -fs /dev/null /target/etc/systemd/system/motd-news.service
+    - ln -fs /dev/null /target/etc/systemd/system/motd-news.timer
+    - ln -fs /dev/null /target/etc/systemd/system/plymouth-quit-wait.service
+    - ln -fs /dev/null /target/etc/systemd/system/plymouth-start.service
+    - ln -fs /usr/share/zoneinfo/Europe/Berlin /target/etc/localtime
+    - rm -f /target/etc/update-motd.d/10-help-text
+    - printf 'tmpfs        /tmp              tmpfs     rw,relatime,nodev,noexec,nosuid,size=512M      0       0\n' >> /target/etc/fstab
+    - printf 'tmpfs        /var/crash        tmpfs     rw,relatime,nodev,noexec,nosuid,size=100M      0       0\n' >> /target/etc/fstab
+    - printf 'tmpfs        /dev/shm          tmpfs     rw,relatime,nodev,noexec,nosuid,size=512M      0       0\n' >> /target/etc/fstab
+    - printf 'tmpfs        /run              tmpfs     rw,relatime,nodev,noexec,nosuid,size=100M      0       0\n' >> /target/etc/fstab
+    - printf 'proc         /proc             proc      rw,relatime,nodev,noexec,nosuid,hidepid=2      0       0\n' >> /target/etc/fstab
+    - printf 'sysadm ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/sysadm
+    - shutdown -h now
+    
+  user-data:
+    disable_root: true
+    ssh_pwauth: false
+
+    users:
+      - name: ansible
+        primary_group: users
+        groups: sudo
+        lock_passwd: true
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - "<public key of admin>"
+          - "<public key for ansible>"
+        sudo: ALL=(ALL) NOPASSWD:ALL
+
+    # shutdown after first host initial provisioning
+    power_state:
+      mode: poweroff
