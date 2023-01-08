@@ -16,7 +16,7 @@ Create a bootable medium out of your remastered image like any other iso bootima
 cd into ./www and start a temorary http server: 
 `python3 -m http.server 3003`
 
-Rollout flavours see: [www/REDME.md](https://github.com/peedy2495/ubuntu-remaster-auoinstall/blob/main/www/README.md)
+Rollout flavours see: [www/REDME.md](https://github.com/peedy2495/ubuntu-remaster-autoinstall/blob/master/www/README.md)
 
 Now, boot from previously created media on your target hardware and enjoy the rollout ;-)
 
