@@ -12,16 +12,18 @@ ISOURL="$1"
 
 wget $ISOURL -N -P $WDIR/images/
 
-ISO_FILENAME="$WDIR/images/${ISOURL##*/}"
+ISO_FILEPATH="$WDIR/images/${ISOURL##*/}"
+ISO_FILENAME="${ISOURL##*/}"
+ISO_FILENAME="${ISO_FILENAME%.iso}"
 
 GENISO_LABEL="Ubuntu22.04LTS server remastered" # max 32 chars
-GENISO_FILENAME="${ISOURL##*/}-remastered-`date +%Y%m%d%H%M%S`.iso"
+GENISO_FILENAME="$ISO_FILENAME-remastered-`date +%Y%m%d%H%M%S`.iso"
 GENISO_BOOTIMG="boot/grub/i386-pc/eltorito.img"
 GENISO_BOOTCATALOG="/boot.catalog"
-GENISO_START_SECTOR=`sudo fdisk -l $ISO_FILENAME |grep iso2 | cut -d' ' -f2`
-GENISO_END_SECTOR=`sudo fdisk -l $ISO_FILENAME |grep iso2 | cut -d' ' -f3`
+GENISO_START_SECTOR=`sudo fdisk -l $ISO_FILEPATH |grep iso2 | cut -d' ' -f2`
+GENISO_END_SECTOR=`sudo fdisk -l $ISO_FILEPATH |grep iso2 | cut -d' ' -f3`
 
-sudo mount $ISO_FILENAME content/base
+sudo mount $ISO_FILEPATH content/base
 sudo mount -t overlay -o lowerdir=content/base,upperdir=content/upper,workdir=content/work non content/ol
 
 sudo xorriso -as mkisofs -volid "$GENISO_LABEL" \
@@ -30,9 +32,9 @@ sudo xorriso -as mkisofs -volid "$GENISO_LABEL" \
 -eltorito-catalog $GENISO_BOOTCATALOG -no-emul-boot \
 -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
 -no-emul-boot -isohybrid-gpt-basdat \
--append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b --interval:local_fs:$GENISO_START_SECTOR\d-$GENISO_END_SECTOR\d::$ISO_FILENAME \
+-append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b --interval:local_fs:$GENISO_START_SECTOR\d-$GENISO_END_SECTOR\d::$ISO_FILEPATH \
 -e '--interval:appended_partition_2_start_1782357s_size_8496d:all::' \
---grub2-mbr --interval:local_fs:0s-15s:zero_mbrpt,zero_gpt:$ISO_FILENAME \
+--grub2-mbr --interval:local_fs:0s-15s:zero_mbrpt,zero_gpt:$ISO_FILEPATH \
 ./content/ol
 
 sudo umount $PWD/content/ol
