@@ -25,6 +25,7 @@ autoinstall:
       bonds:
         bond0:
           dhcp4: true
+          macaddress: 00:ab:cd:ef:01:02
           interfaces: [eports]
           parameters:
             lacp-rate: fast
