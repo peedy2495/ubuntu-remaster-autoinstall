@@ -37,5 +37,6 @@ sudo xorriso -as mkisofs -volid "$GENISO_LABEL" \
 --grub2-mbr --interval:local_fs:0s-15s:zero_mbrpt,zero_gpt:$ISO_FILEPATH \
 ./content/ol
 
+sudo chmod go+rw $WDIR/images/$GENISO_FILENAME
 sudo umount $PWD/content/ol
 sudo umount $PWD/content/base
