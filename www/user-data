@@ -6,6 +6,7 @@ autoinstall:
     layout: de
   refresh-installer:
     update: false
+  upgrade_system: false
   ssh:
     install-server: true
     authorized-keys: 
@@ -24,8 +25,12 @@ autoinstall:
     network:
       bonds:
         bond0:
-          dhcp4: true
-          macaddress: 00:ab:cd:ef:01:02
+          dhcp4: false
+          addresses:
+            - 192.168.2.222/24
+          gateway4: 192.168.2.1
+          nameservers:
+            addresses: [8.8.8.8, 1.1.1.1]
           interfaces: [eports]
           parameters:
             lacp-rate: fast
@@ -58,12 +63,13 @@ autoinstall:
         flag: boot
         id: sys-part-1
         number: 1
-        size: 1127219200
+        size: 1G
         grub_device: true
       - fstype: fat32
         volume: sys-part-1
         preserve: false
         type: format
+        label: EFI
         id: sys-format-1
       - path: /boot/efi
         device: sys-format-1
@@ -71,7 +77,7 @@ autoinstall:
         id: mount-1
 
       - device: system-disk
-        size: 2147483648
+        size: 2G
         wipe: superblock
         flag: ''
         number: 2
@@ -83,6 +89,7 @@ autoinstall:
         volume: sys-part-2
         preserve: false
         type: format
+        label: BOOT
         id: sys-format-2
       - path: /boot
         device: sys-format-2
@@ -107,25 +114,7 @@ autoinstall:
 
       - name: lv-varlog
         volgroup: lvm_volgroup-0
-        size: 10737418240B
-        wipe: superblock
-        preserve: false
-        type: lvm_partition
-        id: lvm_partition-1
-      - fstype: ext4
-        volume: lvm_partition-1
-        preserve: false
-        type: format
-        id: lvm-format-1
-      - path: /var/log
-        device: lvm-format-1
-        type: mount
-        options: relatime,nodev,nosuid,noexec
-        id: lvm-mount-1
-
-      - name: lv-vartmp
-        volgroup: lvm_volgroup-0
-        size: 10737418240B
+        size: 10G
         wipe: superblock
         preserve: false
         type: lvm_partition
@@ -134,16 +123,17 @@ autoinstall:
         volume: lvm_partition-2
         preserve: false
         type: format
+        label: VARLOG
         id: lvm-format-2
-      - path: /var/tmp
+      - path: /var/log
         device: lvm-format-2
         type: mount
         options: relatime,nodev,nosuid,noexec
         id: lvm-mount-2
 
-      - name: lv-varlogaudit
+      - name: lv-mnt
         volgroup: lvm_volgroup-0
-        size: 10737418240B
+        size: 4K
         wipe: superblock
         preserve: false
         type: lvm_partition
@@ -152,34 +142,17 @@ autoinstall:
         volume: lvm_partition-3
         preserve: false
         type: format
+        label: MNT
         id: lvm-format-3
-      - path: /var/log/audit
+      - path: /var/mnt
         device: lvm-format-3
         type: mount
         options: relatime,nodev,nosuid,noexec
         id: lvm-mount-3
 
-      - name: lv-home
+      - name: lv-vartmp
         volgroup: lvm_volgroup-0
-        size: 10737418240B
-        wipe: superblock
-        preserve: false
-        type: lvm_partition
-        id: lvm_partition-3
-      - fstype: ext4
-        volume: lvm_partition-3
-        preserve: false
-        type: format
-        id: lvm-format-3
-      - path: /home
-        device: lvm-format-3
-        type: mount
-        options: relatime,nodev,nosuid,noexec
-        id: lvm-mount-3
-
-      - name: lv-root
-        volgroup: lvm_volgroup-0
-        size: -1
+        size: 10G
         wipe: superblock
         preserve: false
         type: lvm_partition
@@ -188,11 +161,106 @@ autoinstall:
         volume: lvm_partition-4
         preserve: false
         type: format
+        label: VARTMP
         id: lvm-format-4
-      - path: /
+      - path: /var/tmp
         device: lvm-format-4
         type: mount
+        options: relatime,nodev,nosuid,noexec
         id: lvm-mount-4
+
+      - name: lv-varlogaudit
+        volgroup: lvm_volgroup-0
+        size: 10G
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-5
+      - fstype: ext4
+        volume: lvm_partition-5
+        preserve: false
+        type: format
+        label: VARLOGAUDIT
+        id: lvm-format-5
+      - path: /var/log/audit
+        device: lvm-format-5
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-5
+
+      - name: lv-home
+        volgroup: lvm_volgroup-0
+        size: 10G
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-6
+      - fstype: ext4
+        volume: lvm_partition-6
+        preserve: false
+        type: format
+        label: HOME
+        id: lvm-format-6
+      - path: /home
+        device: lvm-format-6
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-6
+
+      - name: lv-opt
+        volgroup: lvm_volgroup-0
+        size: 1G
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-7
+      - fstype: ext4
+        volume: lvm_partition-7
+        preserve: false
+        type: format
+        label: OPT
+        id: lvm-format-7
+      - path: /opt
+        device: lvm-format-7
+        type: mount
+        options: relatime,nodev,nosuid,noexec
+        id: lvm-mount-7
+
+      - name: lv-root
+        volgroup: lvm_volgroup-0
+        size: 20G
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-8
+      - fstype: ext4
+        volume: lvm_partition-8
+        preserve: false
+        type: format
+        label: ROOT
+        id: lvm-format-8
+      - path: /
+        device: lvm-format-8
+        type: mount
+        id: lvm-mount-8
+
+      - name: lv-varlib
+        volgroup: lvm_volgroup-0
+        size: -1
+        wipe: superblock
+        preserve: false
+        type: lvm_partition
+        id: lvm_partition-9
+      - fstype: ext4
+        volume: lvm_partition-9
+        preserve: false
+        type: format
+        label: VARLIB
+        id: lvm-format-9
+      - path: /var/lib
+        device: lvm-format-9
+        type: mount
+        id: lvm-mount-9
 
       - id: data-disk-1
         type: disk
@@ -217,6 +285,7 @@ autoinstall:
         volume: data-part-1
         preserve: false
         type: format
+        label: DATA1
         id: data-format-1
       - path: /data
         device: data-format-1
@@ -225,42 +294,23 @@ autoinstall:
         id: data-mount-1
 
   late-commands:
-    - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove apport bcache-tools byobu friendly-recovery fwupd-signed landscape-common lxd-agent-loader ntfs-3g open-vm-tools plymouth plymouth-theme-ubuntu-text popularity-contest screen sosreport tmux
-    - curtin in-target --target=/target -- snap remove --purge lxd
-    - curtin in-target --target=/target -- apt-get -y --quiet=2 remove --autoremove snapd
-    - |
-      cat <<EOF | sudo tee /target/etc/apt/preferences.d/nosnap.pref
-      # To prevent repository packages from triggering the installation of snap,
-      # this file forbids snapd from being installed by APT.
-
-      Package: snapd
-      Pin: release a=*
-      Pin-Priority: -10
-      EOF
-    - rm -rf /target/root/snap
-    - rm -rf /target/snap
-    - rm -rf /target/var/lib/snapd
-    - rm -rf /target/var/snap
-    - rm -rf /target/var/cache/snapd
-    - rm -rf /target/usr/lib/snapd
-    - curtin in-target --target=/target -- apt-get -qq update
-    #- curtin in-target --target=/target -- apt-mark manual netplan.io software-properties-common fdisk gdisk isc-dhcp-client tzdata eatmydata libeatmydata1 python-babel-localedata python3-attr python3-babel python3-certifi python3-configobj python3-idna python3-jinja2 python3-json-pointer python3-jsonpatch python3-jsonschema python3-markupsafe python3-openssl python3-pyrsistent python3-requests python3-serial python3-tz python3-urllib3
-    #- curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove cloud-init cloud-guest-utils cloud-initramfs-copymods cloud-initramfs-dyn-netconf
-    - curtin in-target --target=/target -- apt-get -y dist-upgrade
+    - mount -t tmpfs -o size=512M tmpfs /mnt
+    - wget -P /mnt -np -nd -l2 -r $(cat /cdrom/boot/grub/grub.cfg |grep s=|cut -d ";" -f 2|cut -d "=" -f 2|tr -d " -")/assets
+    - chmod +x /mnt/*.sh
+    - /mnt/setHost.sh
+    - /mnt/modFsTab.sh
+    - /mnt/rmSnap.sh
+    - curtin in-target --target=/target -- apt-get update
+    - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove modemmanager
+    - curtin in-target --target=/target -- unattended-upgrade -d
     - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 autoremove
+    - ln -fs /usr/share/zoneinfo/Europe/Berlin /target/etc/localtime
     - sed -i 's/ENABLED=1/ENABLED=0/' /target/etc/default/motd-news
     - ln -fs /dev/null /target/etc/systemd/system/motd-news.service
     - ln -fs /dev/null /target/etc/systemd/system/motd-news.timer
     - ln -fs /dev/null /target/etc/systemd/system/plymouth-quit-wait.service
     - ln -fs /dev/null /target/etc/systemd/system/plymouth-start.service
-    - ln -fs /usr/share/zoneinfo/Europe/Berlin /target/etc/localtime
     - rm -f /target/etc/update-motd.d/10-help-text
-    - printf 'tmpfs        /tmp              tmpfs     rw,relatime,nodev,noexec,nosuid,size=512M      0       0\n' >> /target/etc/fstab
-    - printf 'tmpfs        /var/crash        tmpfs     rw,relatime,nodev,noexec,nosuid,size=100M      0       0\n' >> /target/etc/fstab
-    - printf 'tmpfs        /dev/shm          tmpfs     rw,relatime,nodev,noexec,nosuid,size=512M      0       0\n' >> /target/etc/fstab
-    - printf 'tmpfs        /run              tmpfs     rw,relatime,nodev,noexec,nosuid,size=100M      0       0\n' >> /target/etc/fstab
-    - printf 'proc         /proc             proc      rw,relatime,nodev,noexec,nosuid,hidepid=2      0       0\n' >> /target/etc/fstab
-    - printf 'sysadm ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/sysadm
     - shutdown -h now
     
   user-data:
@@ -273,10 +323,11 @@ autoinstall:
         groups: sudo
         lock_passwd: true
         shell: /bin/bash
+        sudo: ALL=(ALL) NOPASSWD:ALL
         ssh_authorized_keys:
           - "<public key of admin>"
           - "<public key for ansible>"
-        sudo: ALL=(ALL) NOPASSWD:ALL
+
 
     # shutdown after first host initial provisioning
     power_state:

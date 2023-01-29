@@ -6,7 +6,9 @@ This project is to remaster and autoinstall via network ubuntu server 22.04 (and
 Create a remastered iso image by using ./remaster.sh  
 Place your modified files in their native path for an overlay mount into *./content/upper* like:  
 `./upper/boot/grub/grub.cfg`  
-Don't forget to modify your own target url in grub.cfg (direct IP or hostname by using a private dns resolver).  
+Don't forget to modify your own target url for using remote configuration and static ip-setup in grub.cfg.  
+You're able to modify the installer sqashfs, too.  
+Therefore drop your custom stuff into *./sqashfs/upper*. Now: custom resolv.conf   
 Call ./remaster.sh with an official iso-url as argument like:  
 `./remaster.sh https://ftp.halifax.rwth-aachen.de/ubuntu-releases/jammy/ubuntu-22.04.1-live-server-amd64.iso`
 

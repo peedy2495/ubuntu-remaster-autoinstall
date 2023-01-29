@@ -1,0 +1,17 @@
+#!/bin/bash
+
+domain="example.com"
+
+declare -A hosts=(
+    [n0a]=00:1e:06:45:02:ea
+    [n0b]=00:1e:06:45:4e:fc
+    [n0c]=00:e0:4c:03:1a:ef
+    [n0d]=00:e0:4c:04:c6:05
+)
+
+declare -A IPs=(
+    [n0a]=192.168.2.21
+    [n0b]=192.168.2.22
+    [n0c]=192.168.2.23
+    [n0d]=192.168.2.24
+)

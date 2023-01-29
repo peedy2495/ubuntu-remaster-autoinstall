@@ -4,11 +4,15 @@
 WDIR=`cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P`
 ISOURL="$1"
 
-[[ -d $WDIR/content/base ]]  || mkdir -p $WDIR/content/base
-[[ -d $WDIR/content/ol ]]    || mkdir -p $WDIR/content/ol
-[[ -d $WDIR/content/upper ]] || mkdir -p $WDIR/content/upper
-[[ -d $WDIR/content/work ]]  || mkdir -p $WDIR/content/work
-[[ -d $WDIR/images ]]        || mkdir -p $WDIR/images
+[[ -d $WDIR/iso/base ]]       || mkdir -p $WDIR/iso/base
+[[ -d $WDIR/iso/ol ]]         || mkdir -p $WDIR/iso/ol
+[[ -d $WDIR/iso/upper ]]      || mkdir -p $WDIR/iso/upper
+[[ -d $WDIR/iso/work ]]       || mkdir -p $WDIR/iso/work
+[[ -d $WDIR/images ]]         || mkdir -p $WDIR/images
+[[ -d $WDIR/squashfs/base ]]  || mkdir -p $WDIR/squashfs/base
+[[ -d $WDIR/squashfs/ol ]]    || mkdir -p $WDIR/squashfs/ol
+[[ -d $WDIR/squashfs/upper ]] || mkdir -p $WDIR/squashfs/upper
+[[ -d $WDIR/squashfs/work ]]  || mkdir -p $WDIR/squashfs/work
 
 wget $ISOURL -N -P $WDIR/images/
 
@@ -23,9 +27,23 @@ GENISO_BOOTCATALOG="/boot.catalog"
 GENISO_START_SECTOR=`sudo fdisk -l $ISO_FILEPATH |grep iso2 | cut -d' ' -f2`
 GENISO_END_SECTOR=`sudo fdisk -l $ISO_FILEPATH |grep iso2 | cut -d' ' -f3`
 
-sudo mount $ISO_FILEPATH content/base
-sudo mount -t overlay -o lowerdir=content/base,upperdir=content/upper,workdir=content/work non content/ol
+# mount iso and overlayfs for interfering custom files
+sudo mount $ISO_FILEPATH iso/base
+sudo mount -t overlay -o lowerdir=iso/base,upperdir=iso/upper,workdir=iso/work non iso/ol
 
+# mount squashfs file from iso and overlayfs for interfering custom files
+sudo mount $WDIR/iso/base/casper/ubuntu-server-minimal.ubuntu-server.installer.squashfs $WDIR/squashfs/base -t squashfs -o loop
+sudo mount -t overlay -o lowerdir=squashfs/base,upperdir=squashfs/upper,workdir=squashfs/work overlay squashfs/ol
+
+# create new squashfs image in iso
+sudo mkdir $WDIR/iso/upper/casper
+sudo mksquashfs $WDIR/squashfs/ol $WDIR/iso/upper/casper/ubuntu-server-minimal.ubuntu-server.installer.squashfs
+
+# squashfs operations finished - unmount
+sudo umount $WDIR/squashfs/ol
+sudo umount $WDIR/squashfs/base
+
+# create new iso image containing all custum ingredients
 sudo xorriso -as mkisofs -volid "$GENISO_LABEL" \
 -output $WDIR/images/$GENISO_FILENAME \
 -eltorito-boot $GENISO_BOOTIMG \
@@ -35,7 +53,7 @@ sudo xorriso -as mkisofs -volid "$GENISO_LABEL" \
 -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b --interval:local_fs:$GENISO_START_SECTOR\d-$GENISO_END_SECTOR\d::$ISO_FILEPATH \
 -e '--interval:appended_partition_2_start_1782357s_size_8496d:all::' \
 --grub2-mbr --interval:local_fs:0s-15s:zero_mbrpt,zero_gpt:$ISO_FILEPATH \
-./content/ol
+./iso/ol
 
-sudo umount $PWD/content/ol
-sudo umount $PWD/content/base
+sudo umount $WDIR/iso/ol
+sudo umount $WDIR/iso/base

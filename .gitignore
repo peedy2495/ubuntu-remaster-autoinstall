@@ -1,3 +1,6 @@
-*.iso
-.vscode
+images
 base
+ol
+work
+casper
+.vscode
