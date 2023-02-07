@@ -10,15 +10,15 @@ autoinstall:
   ssh:
     install-server: true
     authorized-keys: 
-      - "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIFwj0ttLzagrH+Os6Tz3NV0SSDaXKluoQR25onGjzZohAAAABHNzaDo= Peedy@Wonderland"
+      - "sk-ssh-ed25519@openssh.com AAAA<redacted>"
     allow-pw: false
   source:
     search_drivers: false
     id: ubuntu-server-minimized
   identity:
     hostname: "node-0"
-    password: "$y$j9T$BhEtzyoHsrWgcuwwaPloc1$wNw57RP60e1d2khi2Dg3NuFAulKs5VMUJBBLz6Gqtp6"
-    username: admin
+    password: "<redacted>"
+    username: sysadmin
     realname: management
   network:
     version: 2
@@ -28,13 +28,18 @@ autoinstall:
           dhcp4: false
           addresses:
             - 192.168.2.222/24
-          gateway4: 192.168.2.1
+          routes:
+          - to: default
+            via: 192.168.2.1
           nameservers:
-            addresses: [8.8.8.8, 1.1.1.1]
+            addresses: [9.9.9.9, 8.8.8.8]
           interfaces: [eports]
+          # MTU incl IP 20b and TCP 20b headers; switch config +18b FCS +20b IPG
+          mtu: 9000
           parameters:
             lacp-rate: fast
             mode: 802.3ad
+            # switch hashing src+dest mac
             transmit-hash-policy: layer2
             mii-monitor-interval: 100
       ethernets:
@@ -325,8 +330,8 @@ autoinstall:
         shell: /bin/bash
         sudo: ALL=(ALL) NOPASSWD:ALL
         ssh_authorized_keys:
-          - "<public key of admin>"
-          - "<public key for ansible>"
+          - "sk-ssh-ed25519@openssh.com AAAA<redacted>"
+          - "ssh-ed25519 AAAA<redacted>"
 
 
     # shutdown after first host initial provisioning
