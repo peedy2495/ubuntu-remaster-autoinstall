@@ -27,6 +27,7 @@ autoinstall:
         bond0:
           dhcp4: false
           addresses:
+            # intermediate IP; will be set by setHostst.sh
             - 192.168.2.222/24
           routes:
           - to: default
@@ -43,6 +44,11 @@ autoinstall:
             transmit-hash-policy: layer2
             mii-monitor-interval: 100
       ethernets:
+        enp2s0:
+          match:
+            # mac search pattern; wil be set by setHosts.sh
+            macaddress: 00:00:00:00:00:00
+          wakeonlan: true
         eports:
           optional: true
           dhcp4: no
