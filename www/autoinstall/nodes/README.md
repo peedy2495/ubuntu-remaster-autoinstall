@@ -28,14 +28,14 @@ Use several tmpfs mounts to keep volatile stuff away from physical storage (-> l
 | boot            | ext4       | /boot          | defaults                        | 2GB           |
 | lv-root         | ext4       | /              | defaults                        | 20GB          |
 | lv-home         | ext4       | /home          | relatime,nodev,nosuid,noexec    | 10GB          |
-| lv-opt          | ext4       | /opt           | relatime,nodev,nosuid,noexec    | 1GB           |
+| lv-opt          | ext4       | /opt           | relatime,nodev,nosuid           | 5GB           |
+| lv-tmp          | ext4       | /tmp           | relatime,nodev,nosuid,noexec    | 5GB           |
 | lv-mnt          | ext4       | /mnt           | relatime,nodev,nosuid,noexec    | 4KB           |
 | lv-varlib       | ext4       | /var/lib       | relatime,nodev,nosuid,noexec    | rest of space |
 | lv-vartmp       | ext4       | /var/tmp       | relatime,nodev,nosuid,noexec    | 10GB          |
 | lv-varlog       | ext4       | /var/log       | relatime,nodev,nosuid,noexec    | 10GB          |
 | lv-varlogaudit  | ext4       | /var/log/audit | relatime,nodev,nosuid,noexec    | 10GB          |
 | data            | ext4       | /data          | relatime,nodev,nosuid,noexec    | full size     |
-|                 | tmpfs      | /tmp           | relatime,nodev,nosuid,noexec    | 512MB         |
 |                 | tmpfs      | /var/crash     | relatime,nodev,nosuid,noexec    | 100MB         |
 |                 | tmpfs      | /dev/shm       | relatime,nodev,nosuid,noexec    | 512MB         |
 |                 | tmpfs      | /run           | relatime,nodev,nosuid,noexec    | 100MB         |

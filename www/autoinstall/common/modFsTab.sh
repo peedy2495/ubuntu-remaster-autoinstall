@@ -1,4 +1,3 @@
-printf 'tmpfs        /tmp              tmpfs     rw,relatime,nodev,noexec,nosuid,size=512M      0       0\n' >> /target/etc/fstab
 printf 'tmpfs        /var/crash        tmpfs     rw,relatime,nodev,noexec,nosuid,size=100M      0       0\n' >> /target/etc/fstab
 printf 'tmpfs        /dev/shm          tmpfs     rw,relatime,nodev,noexec,nosuid,size=512M      0       0\n' >> /target/etc/fstab
 printf 'tmpfs        /run              tmpfs     rw,relatime,nodev,noexec,nosuid,size=100M      0       0\n' >> /target/etc/fstab

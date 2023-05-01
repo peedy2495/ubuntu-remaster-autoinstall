@@ -1,8 +1,15 @@
 #!/bin/bash
 
 # use this script with native image url as argument
+if [ $# -eq 0 ]; then
+  echo -ne "FAIL: Argument missing!\nUSAGE: remaster.sh <https://path/to/online/image.iso> <CUSTOMLABEL(opt.)>\nExmple: ./remaster.sh https://ftp.halifax.rwth-aachen.de/ubuntu-releases/jammy/ubuntu-22.04.1-live-server-amd64.iso\n"
+  exit 1
+fi
+
+
 WDIR=`cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P`
 ISOURL="$1"
+CUSTOMLABEL="$2"
 
 [[ -d $WDIR/iso/base ]]       || mkdir -p $WDIR/iso/base
 [[ -d $WDIR/iso/ol ]]         || mkdir -p $WDIR/iso/ol
@@ -14,14 +21,14 @@ ISOURL="$1"
 [[ -d $WDIR/squashfs/upper ]] || mkdir -p $WDIR/squashfs/upper
 [[ -d $WDIR/squashfs/work ]]  || mkdir -p $WDIR/squashfs/work
 
-wget $ISOURL -N -P $WDIR/images/
+wget -nc $ISOURL -O $WDIR/images/${ISOURL##*/}
 
 ISO_FILEPATH="$WDIR/images/${ISOURL##*/}"
 ISO_FILENAME="${ISOURL##*/}"
 ISO_FILENAME="${ISO_FILENAME%.iso}"
 
 GENISO_LABEL="Ubuntu22.04LTS server remastered" # max 32 chars
-GENISO_FILENAME="$ISO_FILENAME-remastered-`date +%Y%m%d%H%M%S`.iso"
+GENISO_FILENAME="$ISO_FILENAME-remastered-$CUSTOMLABEL-`date +%Y%m%d%H%M%S`.iso"
 GENISO_BOOTIMG="boot/grub/i386-pc/eltorito.img"
 GENISO_BOOTCATALOG="/boot.catalog"
 GENISO_START_SECTOR=`sudo fdisk -l $ISO_FILEPATH |grep iso2 | cut -d' ' -f2`
